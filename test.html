@@ -215,7 +215,8 @@ function maploading(data){
         var tproperties = $('input[name="rtoggle"]:checked')[0].value.substr(0,2) + 'Total_Properties'
         var LIncome = $('input[name="rtoggle"]:checked')[0].value.substr(0,2) + 'Lost_Income'
 
-        
+
+        map.getCanvas().style.cursor = 'pointer'
 
         hoverPopup.setLngLat([e.lngLat.lng, e.lngLat.lat])
         .setHTML('<div style="text-align: center;"><strong>'+ 'Suburb: ' + mousemovefeatures[0].properties.SSC_NAME16 + '<br> Total Properties for Sale: ' + mousemovefeatures[0].properties[vacancy] +  '<br> Median Age: ' + mousemovefeatures[0].properties[duration] + ' Years <br>'  + 'Average Weekly Income $' + mousemovefeatures[0].properties[rent] +  '</br> </div>')
