@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8' />
+    <title>Radial Map</title>
+    <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+    <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.51.0/mapbox-gl.js'></script>
+    <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.51.0/mapbox-gl.css' rel='stylesheet' />
+    <style>
+        body { margin:0; padding:0; }
+        #map { position:absolute; top:0; bottom:0; width:100%; }
+    </style>
+    <script src="https://d3js.org/d3.v3.min.js"></script>
+    <script src="https://d3js.org/queue.v1.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.10/lodash.min.js"></script>
+</head>
+<body>
+
+<style>
+    #menu {
+        position: absolute;
+        background: #adaeaf;
+        padding: 5px;
+        top: 10px;
+        left: 10px;
+        font-family: 'Open Sans', sans-serif;
+        border-radius: 3px;
+        line-height: 26.5px;
+        display: none;
+    }
+
+    .map-overlay {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    background:#adaeaf;
+    margin-right: 20px;
+    font-family: Arial, sans-serif;
+    overflow: auto;
+    border-radius: 3px;
+    display: none;
+    }
+
+    #legend {
+    padding: 10px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    line-height: 26.5px;
+    height: min-content;
+    margin-bottom: 40px;
+    width: 100px;
+   
+    }
+
+    .legend-key {
+    display: inline-block;
+    border-radius: 20%;
+    width: 10px;
+    height: 10px;
+    margin-right: 5px;
+    }
+
+    h3{
+    margin-bottom: 0px;
+    margin-top: 0px;
+    text-align: center
+    }
+
+</style>
+
+<div id='map'></div>
+<div id='menu'><h3>Price Range</h3>
+    <!-- <input id='less than 300' type='radio' name='rtoggle' value="r0Vacancy_Count">
+    <label for='os'> &#x3c; $300</label>
+    <input id='$300-$349' type='radio' name='rtoggle' value='r1Vacancy_Count'>
+    <label for='rs'>$300-$349</label>
+    <input id='$350-$399' type='radio' name='rtoggle' value='r2Vacancy_Count'>
+    <label for='os'>> $350-$399</label>
+    <input id='>= $400' type='radio' name='rtoggle' value='r3Vacancy_Count'>
+    <label for='rs'>>= $400</label> -->
+    <input id='All' type='radio' name='rtoggle' value='r0Vacancy_Count' checked="checked">
+    <label for='rs'>All</label>
+    
+</div>
+<div class='map-overlay' id='legend'><H3>Vacancies</H3></div>
+<script>
+
+
+mapboxgl.accessToken = 'pk.eyJ1Ijoic3VzaHJ1dDI3OTAiLCJhIjoiY2o2ZWN4M2VqMDR2ZzMzbDk3amR4bGF3aiJ9.BqncC-WDEfkzSjiNo_MK-A';
+var map = new mapboxgl.Map({
+    container: 'map',
+    style: 'mapbox://styles/sushrut2790/cjfbz4c3q0jls2rpf5ogfbls1',
+    center: [151.297860,-33.763300],
+    zoom: 8.3,
+    pitchWithRotate: false,
+    dragRotate: false
+});
+
+map.addControl(new mapboxgl.NavigationControl());
+
+var hoverPopup = new mapboxgl.Popup({ // Create a popup for on hover event
+    closeButton: false
+});
+
+var Suburbsdata;
+
+var layerList = document.getElementById('menu');
+var inputs = layerList.getElementsByTagName('input');
+
+function switchPriceRange(layer) {
+    var layerId = layer.target.id;
+    map.setPaintProperty('PIU1','fill-color',[
+                'interpolate',
+                ['linear'],
+                ['get', $('input[name="rtoggle"]:checked')[0].value],
+                0,'rgba(0,0,0,.1)',
+                1,'#74c476',
+                15, '#74c476',
+                25, '#31a354',
+                40, 'green',
+                300,'#006d2c'
+                
+            ])
+
+
+    }
+
+for (var i = 0; i < inputs.length; i++) {
+    inputs[i].onclick = switchPriceRange;
+}
+
+var prRnges = ["All"]
+var layers = ['1-15', '15-25', '25-40', '40+'];
+var colors = ['#74c476','#31a354','green','#006d2c',];
+for (i = 0; i < layers.length; i++) {
+  var layer = layers[i];
+  var color = colors[i];
+  var item = document.createElement('div');
+  var key = document.createElement('span');
+  key.className = 'legend-key';
+  key.style.backgroundColor = color;
+
+  var value = document.createElement('span');
+  value.innerHTML = layer;
+  item.appendChild(key);
+  item.appendChild(value);
+  legend.appendChild(item);
+}
+
+
+$.getJSON('SouthWesternSydney_Suburbs.geojson',function(data){
+    Suburbsdata = data
+
+    var combinedata = getcombinedData(Suburbsdata)
+    // console.log(combinedata)
+
+    
+
+});
+
+// var pip = ''
+function maploading(data){
+    map.addSource('PIU', {
+                "type": "geojson",
+                "data": data
+            });
+            map.addLayer({
+            'id': 'PIU',
+            'source': 'PIU',
+            "type": 'line',
+            "paint": {
+                "line-color": "black",
+                "line-width": 0.3
+            }
+            });
+
+            map.addLayer({
+            'id': 'PIU1',
+            'source': 'PIU',
+            "type": 'fill',
+            "paint":  {
+            'fill-color': [
+                'interpolate',
+                ['linear'],
+                ['get', 'r0Vacancy_Count'],
+                0, 'rgba(0,0,0,.1)',
+                1500,'#dce0dc',
+                3000, '#83fc83',
+                4500, 'green',
+                5000, '#23b023'
+                
+                
+            ],
+            "fill-opacity": ["case",
+                ["boolean", ["feature-state", "hover"], false],
+                0.10,
+                0.20]
+        }
+    });
+
+
+    map.on('mousemove', function (e) {
+
+
+
+       var mousemovefeatures = map.queryRenderedFeatures(e.point);
+        // console.log(mousemovefeatures)
+        if(mousemovefeatures[0].properties.SSC_NAME16)
+        {
+        
+        
+        var duration = $('input[name="rtoggle"]:checked')[0].value.substr(0,2) + 'Duration'
+        var vacancy = $('input[name="rtoggle"]:checked')[0].value.substr(0,2) + 'Vacancy_Count'
+        var rent = $('input[name="rtoggle"]:checked')[0].value.substr(0,2) + 'Weekly_Rent'
+        var tproperties = $('input[name="rtoggle"]:checked')[0].value.substr(0,2) + 'Total_Properties'
+        var LIncome = $('input[name="rtoggle"]:checked')[0].value.substr(0,2) + 'Lost_Income'
+
+        
+
+        hoverPopup.setLngLat([e.lngLat.lng, e.lngLat.lat])
+        .setHTML('<div style="text-align: center;"><strong>'+ 'Suburb: ' + mousemovefeatures[0].properties.SSC_NAME16 + '<br> Total Properties for Sale: ' + mousemovefeatures[0].properties[vacancy] +  '<br> Median Age: ' + mousemovefeatures[0].properties[duration] + ' Years <br>'  + 'Average Weekly Income $' + mousemovefeatures[0].properties[rent] +  '</br> </div>')
+        .addTo(map);
+        }else{
+        hoverPopup.remove(); 
+        }
+        
+    });
+
+}
+
+
+function getcombinedData(Suburbsdata){
+
+    var datacombined
+
+   $.getJSON('metrics1.json',function(metrics){
+       
+   
+       Suburbsdata.features.forEach(function(v,i){
+
+            v.properties.r0Total_Properties = 0
+            v.properties.r1Total_Properties = 0
+            v.properties.r2Total_Properties = 0
+            v.properties.r3Total_Properties = 0
+            v.properties.r4Total_Properties = 0
+
+            v.properties.r0Weekly_Rent = 0
+            v.properties.r1Weekly_Rent = 0
+            v.properties.r2Weekly_Rent = 0
+            v.properties.r3Weekly_Rent= 0
+            v.properties.r4Weekly_Rent = 0
+
+            v.properties.r0Lost_Income = 0
+            v.properties.r1Lost_Income = 0
+            v.properties.r2Lost_Income = 0
+            v.properties.r3Lost_Income = 0
+            v.properties.r4Lost_Income = 0
+
+            v.properties.r0Vacancy_Count = 0
+            v.properties.r1Vacancy_Count = 0
+            v.properties.r2Vacancy_Count = 0
+            v.properties.r3Vacancy_Count = 0
+            v.properties.r4Vacancy_Count = 0
+
+            v.properties.r0Duration = 0
+            v.properties.r1Duration = 0
+            v.properties.r2Duration = 0
+            v.properties.r3Duration = 0
+            v.properties.r4Duration = 0
+
+           metrics.data.forEach(function(j){
+
+
+
+
+              if(j.Suburb == v.properties.SSC_NAME16){
+
+                prRnges.forEach(function(k,i){
+                    var n = 'r' + i;
+
+                    if(j.Price_Range == k){
+                        console.log(k, j.Price_Range)
+                        v.properties[n+'Total_Properties'] = j.Total_Properties
+                        v.properties[n+'Weekly_Rent'] = j.Weekly_Rent
+                        v.properties[n+'Lost_Income'] = j.Lost_Income
+                        v.properties[n+'Vacancy_Count'] = j.Vacancy_Count
+                        v.properties[n+'Duration'] = j.Duration
+                        
+                    }
+                })
+
+                }
+                
+            
+            })
+
+
+       })
+    console.log(Suburbsdata)
+    maploading(Suburbsdata)
+    })
+
+   
+
+   
+}
+
+
+</script>
+
+</body>
+</html>
