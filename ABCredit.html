@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8' />
+    <title>Radial Map</title>
+    <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+    <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.51.0/mapbox-gl.js'></script>
+    <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.51.0/mapbox-gl.css' rel='stylesheet' />
+    <style>
+        body { margin:0; padding:0; }
+        #map { position:absolute; top:0; bottom:0; width:100%; }
+    </style>
+    <script src="https://d3js.org/d3.v3.min.js"></script>
+    <script src="https://d3js.org/queue.v1.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.10/lodash.min.js"></script>
+</head>
+<body>
+
+<style>
+    #menu {
+        position: absolute;
+        background: #adaeaf;
+        padding: 5px;
+        top: 10px;
+        left: 10px;
+        font-family: 'Open Sans', sans-serif;
+        border-radius: 3px;
+        line-height: 26.5px;
+        display: none;
+    }
+
+    .map-overlay {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    background:#adaeaf;
+    margin-right: 20px;
+    font-family: Arial, sans-serif;
+    overflow: auto;
+    border-radius: 3px;
+    display: none;
+    }
+
+    #legend {
+    padding: 10px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    line-height: 26.5px;
+    height: min-content;
+    margin-bottom: 40px;
+    width: 100px;
+   
+    }
+
+    .legend-key {
+    display: inline-block;
+    border-radius: 20%;
+    width: 10px;
+    height: 10px;
+    margin-right: 5px;
+    }
+
+    h3{
+    margin-bottom: 0px;
+    margin-top: 0px;
+    text-align: center
+    }
+
+</style>
+
+<div id='map'></div>
+
+<script>
+
+
+mapboxgl.accessToken = 'pk.eyJ1Ijoic3VzaHJ1dDI3OTAiLCJhIjoiY2o2ZWN4M2VqMDR2ZzMzbDk3amR4bGF3aiJ9.BqncC-WDEfkzSjiNo_MK-A';
+var map = new mapboxgl.Map({
+    container: 'map',
+    style: 'mapbox://styles/sushrut2790/ck5z7f53s0ov41jqov53apw2a',
+    center: [151.297860,-33.763300],
+    zoom: 8,
+    pitchWithRotate: false,
+    dragRotate: false
+});
+
+console.log(map.style.sourceCaches);
+
+
+map.addControl(new mapboxgl.NavigationControl());
+
+var hoverPopup = new mapboxgl.Popup({ // Create a popup for on hover event
+    closeButton: false
+});
+
+
+    map.on('mousemove', function (e) {
+
+
+
+       var mousemovefeatures = map.queryRenderedFeatures(e.point);
+        // console.log(mousemovefeatures)
+        if(mousemovefeatures[0].properties.Number)
+        {
+        
+        console.log(1)
+        // var duration = $('input[name="rtoggle"]:checked')[0].value.substr(0,2) + 'Duration'
+        // var vacancy = $('input[name="rtoggle"]:checked')[0].value.substr(0,2) + 'Vacancy_Count'
+        // var rent = $('input[name="rtoggle"]:checked')[0].value.substr(0,2) + 'Weekly_Rent'
+        // var tproperties = $('input[name="rtoggle"]:checked')[0].value.substr(0,2) + 'Total_Properties'
+        // var LIncome = $('input[name="rtoggle"]:checked')[0].value.substr(0,2) + 'Lost_Income'
+
+        
+        map.getCanvas().style.cursor = 'pointer';
+
+        hoverPopup.setLngLat([e.lngLat.lng, e.lngLat.lat])
+        .setHTML('<div style="text-align: center;"><strong>'+ 'Suburb: ' + mousemovefeatures[0].properties.Name + '<br> Total Properties on Rent: ' + mousemovefeatures[0].properties.Number + '</div>')
+        .addTo(map);
+        }else{
+        hoverPopup.remove(); 
+        }
+        
+    });
+
+
+
+
+</script>
+
+</body>
+</html>
